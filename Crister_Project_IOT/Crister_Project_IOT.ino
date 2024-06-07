@@ -1,12 +1,17 @@
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
+#define BLYNK_TEMPLATE_ID "TMPL6iWRFjOf0"
+#define BLYNK_TEMPLATE_NAME "Soil Iot"
+
+
 
 const int soilMoisturePin = A0;
 const int relayPin1 = D3;  // Water Relay
 const int relayPin2 = D2;  // Power Relay
 
 int soilMoistureValue = 0;
-int soilMoistureThreshold = 30;  // Adjust as needed
+int soilMoistureThreshold = 25;  // Adjust as needed
+int soilMoistureThresholdMAX = 30;  // Adjust as needed
 bool manualControl1 = false;
 bool manualControl2 = false;
 
@@ -84,10 +89,12 @@ void readSoilMoisture() {
       digitalWrite(relayPin1, HIGH);
       Serial.println("Soil is dry. Water pump is ON.");
       Blynk.virtualWrite(V1, 1);
-    } else {
+      Blynk.logEvent("dry_soil_notification","Soil Moisture Low! Pump starting...");
+    } else if (soilMoisturePercent > soilMoistureThresholdMAX){
       digitalWrite(relayPin1, LOW);
       Serial.println("Soil is wet. Water pump is OFF.");
       Blynk.virtualWrite(V1, 0);
+      Blynk.logEvent("wet_soil_notification","Plant soil moisturized!, Pump turned off...");
     }
   }
 }
