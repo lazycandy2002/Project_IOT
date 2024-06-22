@@ -3,17 +3,17 @@
 #define BLYNK_TEMPLATE_ID "TMPL6iWRFjOf0"
 #define BLYNK_TEMPLATE_NAME "Soil Iot"
 
-
-
 const int soilMoisturePin = A0;
 const int relayPin1 = D3;  // Water Relay
-const int relayPin2 = D2;  // Power Relay
+const int relayPin2 = D4;  // Power Relay
 
 int soilMoistureValue = 0;
 int soilMoistureThreshold = 25;  // Adjust as needed
 int soilMoistureThresholdMAX = 30;  // Adjust as needed
 bool manualControl1 = false;
 bool manualControl2 = false;
+bool isSoilDry = false;
+bool isSoilWet = false;
 
 // Blynk Auth Token
 char auth[] = "mldp7zSmcQps3TyRsiYOk525SWJDZaIx";  // Replace with your Blynk Auth Token
@@ -85,16 +85,20 @@ void readSoilMoisture() {
     // Send soil moisture value to Blynk app
     Blynk.virtualWrite(V5, soilMoisturePercent);
 
-    if (soilMoisturePercent < soilMoistureThreshold) {
+    if (soilMoisturePercent < soilMoistureThreshold && !isSoilDry) {
       digitalWrite(relayPin1, HIGH);
       Serial.println("Soil is dry. Water pump is ON.");
       Blynk.virtualWrite(V1, 1);
       Blynk.logEvent("dry_soil_notification","Soil Moisture Low! Pump starting...");
-    } else if (soilMoisturePercent > soilMoistureThresholdMAX){
+      isSoilDry = true;
+      isSoilWet = false;
+    } else if (soilMoisturePercent > soilMoistureThresholdMAX && !isSoilWet){
       digitalWrite(relayPin1, LOW);
       Serial.println("Soil is wet. Water pump is OFF.");
       Blynk.virtualWrite(V1, 0);
       Blynk.logEvent("wet_soil_notification","Plant soil moisturized!, Pump turned off...");
+      isSoilWet = true;
+      isSoilDry = false;
     }
   }
 }
